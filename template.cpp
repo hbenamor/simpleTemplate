@@ -15,14 +15,12 @@ int drag = 0;
 Rect rect; /* bounding box */
 Mat img, roiImg; /* roiImg - the part of the image in the bounding box */
 int select_flag = 0;
-bool go_fast = false;
 
 int temps = 0;
 std::vector<Mat> templates;
 
 
 ///------- template matching -----------------------------------------------------------------------------------------------
-
 Mat TplMatch( Mat &img, Mat &mytemplate )
 {
 	Mat result;
@@ -35,38 +33,24 @@ Mat TplMatch( Mat &img, Mat &mytemplate )
 
 
 ///------- Localizing the best match with minMaxLoc ------------------------------------------------------------------------
-
 Point minmax( Mat &result )
 {
 	double minVal, maxVal;
 	Point  minLoc, maxLoc, matchLoc;
-
 	minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
 	matchLoc = minLoc;
-
 	return matchLoc;
 }
 
 
 ///------- tracking --------------------------------------------------------------------------------------------------------
-
 void track()
 {
-	if (select_flag)
-	{
-		//roiImg.copyTo(mytemplate);
-		//         select_flag = false;
-		go_fast = true;
-	}
-
-	//     imshow( "mytemplate", mytemplate ); waitKey(0);
-
 	for(int i =0; i < templates.size(); i++)
 	{
 		Mat result =  TplMatch( img, templates[i] );
 		Point match =  minmax( result );
 		rectangle( img, match, Point( match.x + templates[i].cols , match.y + templates[i].rows ), CV_RGB(0, 255, 0), 0.5 );
-
 		//std::cout << "match: " << match << endl;
 	}
 }
@@ -115,47 +99,44 @@ void mouseHandler(int event, int x, int y, int flags, void *param)
 
 }
 
-
-
 ///------- Main() ----------------------------------------------------------------------------------------------------------
 
 int main()
 {
 	int k;
-
 	///open webcam
 	VideoCapture cap(0);
 	if (!cap.isOpened())
 		return 1;
 
 	///open video file
-		//VideoCapture cap;
-		//cap.open( "test.avi" );
-		if ( !cap.isOpened() )
-		{   cout << "Unable to open video file" << endl;    return -1;    }
+	//VideoCapture cap;
+	//cap.open( "test.avi" );
+	if ( !cap.isOpened() )
+	{
+		cout << "Unable to open video stream" << endl;
+		return -1;
+	}
 
-				/// Set video to 320x240
-		    cap.set(CV_CAP_PROP_FRAME_WIDTH, 800);
-		    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 600);
+	/// Set video to 320x240
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 800);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 600);
 
+	cap >> img;
+	imshow( "image", img );
+
+	while (cv::waitKey(10) == -1)
+	{
 		cap >> img;
-		imshow( "image", img );
+		if ( img.empty() )
+			break;
 
-		while (cv::waitKey(10) == -1)
-		{
-			cap >> img;
-			if ( img.empty() )
-				break;
-
-				if ( rect.width == 0 && rect.height == 0 )
-					cvSetMouseCallback( "image", mouseHandler, NULL );
-				else
-					track();
-
-				imshow("image", img);
-
-		}
-
-		return 0;
+		if ( rect.width == 0 && rect.height == 0 )
+			cvSetMouseCallback( "image", mouseHandler, NULL );
+		else
+			track();
+		imshow("image", img);
+	}
+	return 0;
 }
 
