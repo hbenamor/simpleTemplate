@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.6)
+project(simpleTemplate)
+find_package( OpenCV 2.4 REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+add_executable(simpleTemplate template.cpp)
+target_link_libraries(simpleTemplate ${OpenCV_LIBS})
